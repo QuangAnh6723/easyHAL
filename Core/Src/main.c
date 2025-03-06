@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 
 #include <stdio.h>
-//#include <.h>
+#include "../extra/easyHAL/easyi2c.h"
 
 /* USER CODE END Includes */
 
@@ -53,7 +53,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
-osThreadId defaultTaskHandle;
+osThreadId testTaskHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -66,7 +66,7 @@ static void MX_I2C1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
-void StartDefaultTask(void const * argument);
+void test_Task(void const * argument);
 
 /* USER CODE BEGIN PFP */
 #ifdef __GNUC__
@@ -80,11 +80,8 @@ void StartDefaultTask(void const * argument);
 #endif
 
 PUTCHAR_PROTOTYPE
-
 {
-
-HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
-
+	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
 }
 /* USER CODE END PFP */
 
@@ -148,9 +145,9 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of testTask */
+  osThreadDef(testTask, test_Task, osPriorityNormal, 0, 128);
+  testTaskHandle = osThreadCreate(osThread(testTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -216,6 +213,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  HAL_RCC_MCOConfig(RCC_MCO, RCC_MCO1SOURCE_PLLCLK, RCC_MCODIV_1);
 }
 
 /**
@@ -416,6 +414,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(L1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PA8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -424,14 +428,14 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_test_Task */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the testTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_test_Task */
+void test_Task(void const * argument)
 {
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
